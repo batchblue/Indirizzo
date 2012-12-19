@@ -62,7 +62,6 @@ module Indirizzo
         if !@street.nil?
           if text[:number].nil?
             @street.map! { |single_street|
-              single_street.downcase!
               @number = single_street.scan(Match[:number])[0].reject{|n| n.nil? || n.empty?}.first.to_s
               single_street.sub! @number, ""
               single_street.sub! /^\s*,?\s*/o, ""
@@ -135,7 +134,7 @@ module Indirizzo
     end
 
     def parse
-      text = @text.clone.downcase
+      text = @text.clone
 
       @zip = text.scan(Match[:zip]).last
       if @zip
@@ -195,8 +194,7 @@ module Indirizzo
           @city = [@city.last.strip]
           add = @city.map {|item| item.gsub(Name_Abbr.regexp) {|m| Name_Abbr[m]}}
           @city |= add
-          @city.map! {|s| s.downcase}
-          @city.uniq!
+          @city.uniq! { |s| s.downcase }
         else
           @city = []
         end
@@ -216,8 +214,7 @@ module Indirizzo
         street |= add
         street.map! {|item| expand_numbers(item)}
         street.flatten!
-        street.map! {|s| s.downcase}
-        street.uniq!
+        street.uniq! { |s| s.downcase }
       else
         street = []
       end
