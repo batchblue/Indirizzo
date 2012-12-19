@@ -16,6 +16,11 @@ class TestAddress < Test::Unit::TestCase
     assert_equal "1600 Pennsylvania Av, Washington DC", addr.text
   end
 
+  def test_doesnt_downcase_street
+    addr = Address.new("1600 Pennsylvania Av., Washington DC")
+    assert_equal "Pennsylvania Av", addr.street.first
+  end
+
   def test_expand_numbers
     num_list = ["5", "fifth", "five"]
     num_list.each {|n|
@@ -34,7 +39,7 @@ class TestAddress < Test::Unit::TestCase
 
   def test_no_expand_street
     addr = Address.new("1 First St, Atlanta GA, 12345", :expand_streets => false)
-    assert_equal addr.street.first, "first st"
+    assert_equal "First St", addr.street.first
   end
 
   def test_po_box
@@ -49,9 +54,9 @@ class TestAddress < Test::Unit::TestCase
 
   def test_skip_parse
     addresses = [
-      {:street => "1233 Main St", :city => "Springfield", :region => "VA", :postal_code => "12345", :final_number => "1233", :parsed_street => "main st"},
-      {:street => "somewhere Ln", :city => "Somewhere", :region => "WI", :postal_code => "22222", :number => "402", :parsed_street => "somewhere ln", :final_number => "402"},
-      {:street => "somewhere Ln", :city => "Somewhere", :state => "WI", :postal_code => "22222", :number => "402", :parsed_street => "somewhere ln", :final_number => "402"},
+      {:street => "1233 Main St", :city => "Springfield", :region => "VA", :postal_code => "12345", :final_number => "1233", :parsed_street => "Main St"},
+      {:street => "somewhere Ln", :city => "Somewhere", :region => "WI", :postal_code => "22222", :number => "402", :parsed_street => "somewhere Ln", :final_number => "402"},
+      {:street => "somewhere Ln", :city => "Somewhere", :state => "WI", :postal_code => "22222", :number => "402", :parsed_street => "somewhere Ln", :final_number => "402"},
       ]
       for preparsed_address in addresses
         address_for_geocode = Address.new preparsed_address
@@ -77,8 +82,8 @@ class TestAddress < Test::Unit::TestCase
 
   def test_address_hash
     addresses = [
-      {:address => "Herndon, VA", :place_check => ["herndon"]},
-      {:address => "Arlington, VA", :place_check => ["arlington"]}
+      {:address => "Herndon, VA", :place_check => ["Herndon"]},
+      {:address => "Arlington, VA", :place_check => ["Arlington"]}
       ]
       for preparsed_address in addresses
         address_for_geocode = Address.new preparsed_address 
@@ -144,12 +149,11 @@ class TestAddress < Test::Unit::TestCase
   def check_city(fixture)
       addr  = Address.new(fixture[0])
       [:city, :state, :zip].zip(fixture[1..3]).each do |key,val|
-        result = addr.send(key)
-        result = [result.downcase] unless result.kind_of?(Array)
+        result = Array(addr.send(key))
         if result.empty?
           assert_equal val, "", key.to_s + " test no result " + fixture.join("/")
         else
-          assert result.member?(val.downcase), key.to_s + " test " + result.inspect + fixture.join("/")
+          assert result.member?(val), key.to_s + " test " + result.inspect + fixture.join("/")
         end
       end
   end
