@@ -1,10 +1,11 @@
-source :rubygems
+source 'https://rubygems.org'
 
 gem 'rake'
 
 group :test, :development do
-  gem 'cover_me'
+  gem 'simplecov', require: false
   gem 'awesome_print'
+  gem 'pry'
 end
 
 group :test do
